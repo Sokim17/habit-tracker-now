@@ -1,6 +1,6 @@
 # Daymark Habit Tracker
 
-Daymark is a simple daily habit tracker. Add, rename, and reorder habits, mark them complete today or plan completions for tomorrow, and review recent check-ins and streaks.
+Daymark is a simple daily habit tracker. Add, rename, and reorder habits, mark them complete today or plan completions for tomorrow, browse past check-ins in the calendar, and review recent activity and streaks.
 
 ## Requirements
 

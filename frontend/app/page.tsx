@@ -17,6 +17,13 @@ const addDays = (amount: number, from: Date) => {
   return date;
 };
 
+const startOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
+
+const parseIsoDate = (day: string) => {
+  const [year, month, date] = day.split("-").map(Number);
+  return new Date(year, month - 1, date);
+};
+
 const dateLabel = (date: Date, options: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat("en", options).format(date);
 
@@ -57,10 +64,24 @@ export default function Home() {
   const [error, setError] = useState("");
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [selectedDayOffset, setSelectedDayOffset] = useState<0 | 1>(0);
+  const [calendarSelectedDay, setCalendarSelectedDay] = useState<string | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState<Date | null>(null);
   const today = currentDate ? iso(currentDate) : "";
-  const selectedDate = currentDate ? addDays(selectedDayOffset, currentDate) : null;
+  const selectedDate = calendarSelectedDay
+    ? parseIsoDate(calendarSelectedDay)
+    : currentDate
+      ? addDays(selectedDayOffset, currentDate)
+      : null;
   const selectedDay = selectedDate ? iso(selectedDate) : "";
-  const selectedDayName = selectedDayOffset === 0 ? "today" : "tomorrow";
+  const selectedIsToday = selectedDay === today;
+  const selectedIsTomorrow = currentDate !== null && selectedDay === iso(addDays(1, currentDate));
+  const selectedDayName = selectedIsToday
+    ? "today"
+    : selectedIsTomorrow
+      ? "tomorrow"
+      : selectedDate
+        ? dateLabel(selectedDate, { month: "short", day: "numeric" })
+        : "selected day";
 
   const loadHabits = useCallback(async () => {
     setLoading(true);
@@ -87,6 +108,8 @@ export default function Home() {
       const now = new Date();
       setCurrentDate(now);
       setSelectedDayOffset(0);
+      setCalendarSelectedDay(null);
+      setCalendarMonth(startOfMonth(now));
 
       const nextDay = new Date(now);
       nextDay.setHours(24, 0, 0, 100);
@@ -102,6 +125,30 @@ export default function Home() {
   const week = currentDate
     ? Array.from({ length: 7 }, (_, index) => addDays(index - 6, currentDate))
     : [];
+  const habitWeek = selectedDate
+    ? Array.from({ length: 7 }, (_, index) => addDays(index - 6, selectedDate))
+    : [];
+  const calendarDays = calendarMonth
+    ? Array.from({ length: 42 }, (_, index) => {
+        const firstWeekday = startOfMonth(calendarMonth).getDay();
+        return addDays(index - firstWeekday, startOfMonth(calendarMonth));
+      })
+    : [];
+  const currentMonth = currentDate ? startOfMonth(currentDate) : null;
+  const canShowNextMonth =
+    calendarMonth !== null &&
+    currentMonth !== null &&
+    calendarMonth.getTime() < currentMonth.getTime();
+
+  const selectOffset = (offset: 0 | 1) => {
+    setSelectedDayOffset(offset);
+    setCalendarSelectedDay(null);
+  };
+
+  const selectCalendarDay = (date: Date) => {
+    setCalendarSelectedDay(iso(date));
+    setCalendarMonth(startOfMonth(date));
+  };
 
   const addHabit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -238,24 +285,32 @@ export default function Home() {
                 ? dateLabel(selectedDate, { weekday: "long", month: "long", day: "numeric" })
                 : "YOUR DAILY PRACTICE"}
             </p>
-            <h1 id="page-title">{selectedDayOffset === 0 ? "Make today count." : "Plan for tomorrow."}</h1>
+            <h1 id="page-title">
+              {selectedIsToday
+                ? "Make today count."
+                : selectedIsTomorrow
+                  ? "Plan for tomorrow."
+                  : `Your day on ${selectedDayName}.`}
+            </h1>
             <p className="intro-copy">
-              {selectedDayOffset === 0
+              {selectedIsToday
                 ? "Small promises to yourself add up. Show up for the next one."
-                : "Get a head start on tomorrow. You can change your plan anytime."}
+                : selectedIsTomorrow
+                  ? "Get a head start on tomorrow. You can change your plan anytime."
+                  : "Here’s how your habits looked on this day."}
             </p>
           </div>
 
           <div className="day-selector" role="group" aria-label="Choose a day to track">
             {([0, 1] as const).map((offset) => {
               const date = currentDate ? addDays(offset, currentDate) : null;
-              const isSelected = selectedDayOffset === offset;
+              const isSelected = calendarSelectedDay === null && selectedDayOffset === offset;
               return (
                 <button
                   className={`day-option${isSelected ? " selected" : ""}`}
                   type="button"
                   key={offset}
-                  onClick={() => setSelectedDayOffset(offset)}
+                  onClick={() => selectOffset(offset)}
                   disabled={!date}
                   aria-pressed={isSelected}
                 >
@@ -269,28 +324,40 @@ export default function Home() {
           <section className="progress-card" aria-label={`${selectedDayName}'s progress`}>
             <div className="progress-copy">
               <div>
-                <p className="card-kicker">{selectedDayOffset === 0 ? "YOUR DAILY CHECK-IN" : "TOMORROW'S PLAN"}</p>
+                <p className="card-kicker">
+                  {selectedIsToday ? "YOUR DAILY CHECK-IN" : selectedIsTomorrow ? "TOMORROW'S PLAN" : "PAST CHECK-IN"}
+                </p>
                 <h2>
                   {habits.length === 0
                     ? "Start with one small thing"
-                    : selectedDayOffset === 0
+                    : selectedIsToday
                       ? "You’re building momentum"
-                      : "Get tomorrow ready"}
+                      : selectedIsTomorrow
+                        ? "Get tomorrow ready"
+                        : "Your progress that day"}
                 </h2>
                 <p className="progress-caption">
                   {habits.length === 0
-                    ? selectedDayOffset === 0
+                    ? selectedIsToday
                       ? "Add a habit below to begin your daily rhythm."
-                      : "Add a habit below, or mark one for tomorrow."
+                      : selectedIsTomorrow
+                        ? "Add a habit below, or mark one for tomorrow."
+                        : "Add a habit to start tracking your progress."
                     : `${completedCount} of ${habits.length} ${habits.length === 1 ? "habit" : "habits"} ${
-                        selectedDayOffset === 0 ? "complete today" : "planned for tomorrow"
+                        selectedIsToday
+                          ? "complete today"
+                          : selectedIsTomorrow
+                            ? "planned for tomorrow"
+                            : `complete on ${selectedDayName}`
                       }`}
                 </p>
               </div>
               <div
                 className="progress-ring"
                 role="img"
-                aria-label={`${progress}% of ${selectedDayName}'s habits ${selectedDayOffset === 0 ? "complete" : "planned"}`}
+                aria-label={`${progress}% of ${selectedDayName}'s habits ${
+                  selectedIsTomorrow ? "planned" : "complete"
+                }`}
                 style={{ "--progress": `${progress}%` } as CSSProperties}
               >
                 <span>{progress}%</span>
@@ -307,7 +374,13 @@ export default function Home() {
               <span style={{ width: `${progress}%` }} />
             </div>
             <div className="progress-footer">
-              <span>{selectedDayOffset === 0 ? "Keep it gentle. Keep it going." : "A little planning goes a long way."}</span>
+              <span>
+                {selectedIsToday
+                  ? "Keep it gentle. Keep it going."
+                  : selectedIsTomorrow
+                    ? "A little planning goes a long way."
+                    : "Looking back is part of moving forward."}
+              </span>
               <span>{selectedDate ? dateLabel(selectedDate, { month: "short", day: "numeric" }) : "Today"}</span>
             </div>
           </section>
@@ -344,7 +417,7 @@ export default function Home() {
               <div className="habit-list">
                 {habits.map((habit, index) => {
                   const isComplete = habit.days.includes(selectedDay);
-                  const currentStreak = streak(habit.days, currentDate);
+                  const currentStreak = streak(habit.days, selectedDate ?? currentDate);
                   const isEditing = editingHabitId === habit.id;
                   return (
                     <article className={`habit-card${isComplete ? " is-complete" : ""}`} key={habit.id}>
@@ -398,16 +471,17 @@ export default function Home() {
                             </>
                           )}
                         </div>
-                        <div className="week-strip" aria-label="Last seven days">
-                          {week.map((date) => {
+                        <div className="week-strip" aria-label={`Seven days through ${selectedDayName}`}>
+                          {habitWeek.map((date) => {
                             const dayKey = iso(date);
                             const isToday = dayKey === today;
+                            const isSelectedDay = dayKey === selectedDay;
                             const wasDone = habit.days.includes(dayKey);
                             return (
                               <div className="week-day" key={dayKey}>
                                 <span className="week-label">{dateLabel(date, { weekday: "narrow" })}</span>
                                 <span
-                                  className={`week-dot${wasDone ? " done" : ""}${isToday ? " today" : ""}`}
+                                  className={`week-dot${wasDone ? " done" : ""}${isToday ? " today" : ""}${isSelectedDay ? " selected-day" : ""}`}
                                   title={`${dateLabel(date, { weekday: "long", month: "short", day: "numeric" })}${wasDone ? " · complete" : ""}`}
                                 >
                                   {wasDone ? "✓" : ""}
@@ -493,6 +567,85 @@ export default function Home() {
         </section>
 
         <aside className="side-column" aria-label="Your habit overview">
+          <section className="side-card calendar-card" aria-label="Habit history calendar">
+            <div className="side-card-heading">
+              <div>
+                <p className="card-kicker">YOUR HISTORY</p>
+                <h2>{calendarMonth ? dateLabel(calendarMonth, { month: "long", year: "numeric" }) : "Calendar"}</h2>
+              </div>
+              <div className="calendar-nav">
+                <button
+                  type="button"
+                  className="calendar-nav-button"
+                  onClick={() =>
+                    calendarMonth &&
+                    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))
+                  }
+                  disabled={!calendarMonth}
+                  aria-label="Show previous month"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="m10 3.5-4.5 4.5 4.5 4.5" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="calendar-nav-button"
+                  onClick={() =>
+                    calendarMonth &&
+                    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))
+                  }
+                  disabled={!canShowNextMonth}
+                  aria-label="Show next month"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="m6 3.5 4.5 4.5L6 12.5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <p className="side-description">Select a date to view that day’s tracker.</p>
+            <div className="calendar-grid" role="group" aria-label="Select a date">
+              {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
+                <span className="calendar-weekday" key={`${day}-${index}`}>
+                  {day}
+                </span>
+              ))}
+              {calendarDays.map((date, index) => {
+                if (!calendarMonth || date.getMonth() !== calendarMonth.getMonth()) {
+                  return <span className="calendar-blank" aria-hidden="true" key={`blank-${index}`} />;
+                }
+
+                const dayKey = iso(date);
+                const done = habits.filter((habit) => habit.days.includes(dayKey)).length;
+                const isFuture = currentDate !== null && dayKey > iso(addDays(1, currentDate));
+                const isSelected = selectedDay === dayKey;
+                const isToday = today === dayKey;
+                return (
+                  <button
+                    className={`calendar-day${isSelected ? " selected" : ""}${isToday ? " today" : ""}${done ? " has-completions" : ""}`}
+                    type="button"
+                    key={dayKey}
+                    onClick={() => selectCalendarDay(date)}
+                    disabled={isFuture || !currentDate}
+                    aria-label={`${dateLabel(date, { weekday: "long", month: "long", day: "numeric" })}${
+                      done ? `, ${done} ${done === 1 ? "habit" : "habits"} complete` : ""
+                    }`}
+                    aria-pressed={isSelected}
+                    title={done ? `${done} ${done === 1 ? "habit" : "habits"} complete` : undefined}
+                  >
+                    <span>{date.getDate()}</span>
+                    {done > 0 && <span className="calendar-completion-dot" aria-hidden="true" />}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="calendar-legend">
+              <span className="calendar-legend-dot" />
+              <span>Days with check-ins</span>
+            </div>
+          </section>
+
           <section className="side-card week-card">
             <div className="side-card-heading">
               <div>
@@ -522,7 +675,10 @@ export default function Home() {
             </div>
             <div className="week-summary">
               <span className="summary-dot" />
-              <span>{completedCount} done today</span>
+              <span>
+                {completedCount} done{" "}
+                {selectedIsToday ? "today" : selectedIsTomorrow ? "planned for tomorrow" : `on ${selectedDayName}`}
+              </span>
               <span className="summary-divider">·</span>
               <span>{habits.length - completedCount} to go</span>
             </div>

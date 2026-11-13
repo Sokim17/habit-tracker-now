@@ -575,6 +575,11 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+.week-dot.selected-day {
+  outline: 1px solid var(--green);
+  outline-offset: 2px;
+}
+
 .week-dot.today.done {
   background: var(--green);
 }
@@ -726,6 +731,135 @@ input:focus-visible {
   border-radius: 15px;
   background: rgba(255, 255, 252, 0.82);
   box-shadow: 0 5px 20px rgba(48, 65, 50, 0.03);
+}
+
+.calendar-card {
+  padding: 18px 17px 14px;
+}
+
+.calendar-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.calendar-nav-button {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid #e9ece5;
+  border-radius: 8px;
+  background: #fff;
+  color: #647368;
+  cursor: pointer;
+}
+
+.calendar-nav-button:hover:not(:disabled) {
+  border-color: #b7cdb8;
+  background: #f5f8f2;
+  color: var(--green);
+}
+
+.calendar-nav-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.calendar-nav-button svg {
+  width: 15px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.calendar-card .side-description {
+  margin: 8px 0 12px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px 2px;
+}
+
+.calendar-weekday {
+  display: grid;
+  height: 22px;
+  place-items: center;
+  color: #9aa198;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.calendar-blank,
+.calendar-day {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
+}
+
+.calendar-day {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #566259;
+  cursor: pointer;
+  font-size: 10px;
+  transition: background 130ms ease, color 130ms ease, border-color 130ms ease;
+}
+
+.calendar-day:hover:not(:disabled) {
+  border-color: #dce8dc;
+  background: #f1f6ef;
+}
+
+.calendar-day.today {
+  color: var(--green-dark);
+  font-weight: 750;
+}
+
+.calendar-day.selected {
+  border-color: var(--green);
+  background: var(--green);
+  color: #fff;
+  font-weight: 700;
+}
+
+.calendar-day:disabled {
+  cursor: not-allowed;
+  color: #c4c9c1;
+}
+
+.calendar-completion-dot,
+.calendar-legend-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #76a27c;
+}
+
+.calendar-day.selected .calendar-completion-dot {
+  background: #d6ead7;
+}
+
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 11px;
+  color: #8b948b;
+  font-size: 9px;
+}
+
+.calendar-legend-dot {
+  width: 6px;
+  height: 6px;
 }
 
 .week-card {
