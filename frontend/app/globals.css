@@ -161,6 +161,50 @@ input:focus-visible {
   line-height: 1.6;
 }
 
+.day-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.day-option {
+  display: flex;
+  min-width: 126px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1px solid #e5e8e1;
+  border-radius: 9px;
+  background: rgba(255, 255, 252, 0.72);
+  color: #68746b;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 650;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.day-option:hover:not(:disabled) {
+  border-color: #b7cdb8;
+}
+
+.day-option.selected {
+  border-color: #a7c3a9;
+  background: #eaf2e9;
+  color: #315e42;
+}
+
+.day-option:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.day-option-date {
+  color: #879188;
+  font-size: 10px;
+  font-weight: 500;
+}
+
 .progress-card {
   padding: 23px 24px 18px;
   border: 1px solid #e6ebe4;
@@ -391,6 +435,7 @@ input:focus-visible {
 }
 
 .check-button:disabled,
+.edit-button:disabled,
 .delete-button:disabled {
   cursor: wait;
   opacity: 0.6;
@@ -422,6 +467,56 @@ input:focus-visible {
   color: #7d897f;
   text-decoration: line-through;
   text-decoration-color: #a7b3a8;
+}
+
+.habit-edit-form {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+}
+
+.habit-edit-form input {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid #dce5dc;
+  border-radius: 7px;
+  background: #fff;
+  color: #2d3931;
+  font-size: 11px;
+}
+
+.edit-save-button,
+.edit-cancel-button {
+  flex: 0 0 auto;
+  padding: 6px 7px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.edit-save-button {
+  background: var(--green);
+  color: #fff;
+}
+
+.edit-save-button:hover:not(:disabled) {
+  background: var(--green-dark);
+}
+
+.edit-cancel-button {
+  background: #eff1ec;
+  color: #6f786f;
+}
+
+.edit-save-button:disabled,
+.edit-cancel-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .streak-pill {
@@ -484,6 +579,43 @@ input:focus-visible {
   background: var(--green);
 }
 
+.move-controls {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 1px;
+}
+
+.move-button {
+  display: grid;
+  width: 28px;
+  height: 21px;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #8d978e;
+  cursor: pointer;
+}
+
+.move-button:hover:not(:disabled) {
+  background: #edf3e9;
+  color: var(--green);
+}
+
+.move-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.move-button svg {
+  width: 14px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.edit-button,
 .delete-button {
   display: grid;
   width: 30px;
@@ -498,12 +630,19 @@ input:focus-visible {
   opacity: 0.65;
 }
 
+.edit-button:hover {
+  background: #edf3e9;
+  color: var(--green);
+  opacity: 1;
+}
+
 .delete-button:hover {
   background: #f8ece8;
   color: #a34d3d;
   opacity: 1;
 }
 
+.edit-button svg,
 .delete-button svg {
   width: 17px;
   stroke: currentColor;

@@ -1,6 +1,7 @@
 import sqlite3
 from contextlib import contextmanager
 from datetime import date
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,7 +35,8 @@ with db() as c:
         """
         CREATE TABLE IF NOT EXISTS habits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
+            name TEXT NOT NULL,
+            position INTEGER NOT NULL DEFAULT 0
         );
         CREATE TABLE IF NOT EXISTS completions (
             habit_id INTEGER NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
@@ -43,16 +45,31 @@ with db() as c:
         );
         """
     )
+    columns = {row["name"] for row in c.execute("PRAGMA table_info(habits)")}
+    if "position" not in columns:
+        c.execute(
+            "ALTER TABLE habits ADD COLUMN position INTEGER NOT NULL DEFAULT 0"
+        )
+        c.execute("UPDATE habits SET position = id")
 
 
 class HabitIn(BaseModel):
     name: str
 
 
+class HabitMoveIn(BaseModel):
+    direction: Literal["up", "down"]
+
+
 @app.get("/habits")
 def list_habits():
     with db() as c:
-        habits = [dict(r) for r in c.execute("SELECT id, name FROM habits ORDER BY id")]
+        habits = [
+            dict(r)
+            for r in c.execute(
+                "SELECT id, name FROM habits ORDER BY position, id"
+            )
+        ]
         for h in habits:
             rows = c.execute(
                 "SELECT day FROM completions WHERE habit_id = ?", (h["id"],)
@@ -67,8 +84,58 @@ def create_habit(body: HabitIn):
     if not name:
         raise HTTPException(400, "Name required")
     with db() as c:
-        cur = c.execute("INSERT INTO habits (name) VALUES (?)", (name,))
+        position = c.execute(
+            "SELECT COALESCE(MAX(position), 0) + 1 FROM habits"
+        ).fetchone()[0]
+        cur = c.execute(
+            "INSERT INTO habits (name, position) VALUES (?, ?)", (name, position)
+        )
         return {"id": cur.lastrowid, "name": name, "days": []}
+
+
+@app.put("/habits/{habit_id}")
+def update_habit(habit_id: int, body: HabitIn):
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(400, "Name required")
+    with db() as c:
+        cur = c.execute("UPDATE habits SET name = ? WHERE id = ?", (name, habit_id))
+        if cur.rowcount == 0:
+            raise HTTPException(404, "Habit not found")
+        rows = c.execute(
+            "SELECT day FROM completions WHERE habit_id = ?", (habit_id,)
+        ).fetchall()
+    return {"id": habit_id, "name": name, "days": sorted(r["day"] for r in rows)}
+
+
+@app.post("/habits/{habit_id}/move")
+def move_habit(habit_id: int, body: HabitMoveIn):
+    with db() as c:
+        habits = c.execute(
+            "SELECT id, position FROM habits ORDER BY position, id"
+        ).fetchall()
+        current_index = next(
+            (index for index, habit in enumerate(habits) if habit["id"] == habit_id),
+            None,
+        )
+        if current_index is None:
+            raise HTTPException(404, "Habit not found")
+
+        adjacent_index = current_index + (-1 if body.direction == "up" else 1)
+        if not 0 <= adjacent_index < len(habits):
+            return {"id": habit_id, "moved": False}
+
+        current = habits[current_index]
+        adjacent = habits[adjacent_index]
+        c.execute(
+            "UPDATE habits SET position = ? WHERE id = ?",
+            (adjacent["position"], habit_id),
+        )
+        c.execute(
+            "UPDATE habits SET position = ? WHERE id = ?",
+            (current["position"], adjacent["id"]),
+        )
+    return {"id": habit_id, "moved": True}
 
 
 @app.delete("/habits/{habit_id}", status_code=204)
