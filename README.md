@@ -37,6 +37,13 @@ Open [http://localhost:3000](http://localhost:3000).
 
 The frontend uses `http://localhost:8000` by default. To use a different API URL, set `NEXT_PUBLIC_API_URL` in the frontend environment.
 
+## Using Daymark
+
+- Add a habit with the form under the habit list. Use the pencil button to rename it, the up/down arrows to reorder it, or the trash button to delete it.
+- Choose **Today** or **Tomorrow** to record a check-in or plan one ahead.
+- Use the calendar in the overview to browse months. Dates with saved check-ins have a dot; select a date to view that day’s tracker and completion history. You can toggle a habit on a past date to correct its record.
+- The calendar shows today and tomorrow as the furthest dates ahead. The **Last 7 days** chart remains a rolling view of the current day and six days before it.
+
 ## Data storage
 
 The backend uses SQLite. On its first start, it creates the `habits` and `completions` tables and the database file automatically. With the API startup commands above, the file is `backend/habits.db`.
