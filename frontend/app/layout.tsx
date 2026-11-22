@@ -15,6 +15,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Daymark — Daily habits",
   description: "Build a steady, everyday habit practice with Daymark.",
+  applicationName: "Daymark",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Daymark",
+  },
+  icons: {
+    icon: "/icon.png",
+    apple: "/daymark-apple-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

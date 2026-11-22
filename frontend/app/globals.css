@@ -68,29 +68,14 @@ input:focus-visible {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: var(--foreground);
-  font-size: 19px;
-  font-weight: 750;
-  letter-spacing: -0.8px;
   text-decoration: none;
 }
 
-.brand-mark {
-  display: grid;
-  width: 31px;
-  height: 31px;
-  place-items: center;
-  border-radius: 10px;
-  background: var(--green);
-  color: #fff;
-}
-
-.brand-mark svg {
-  width: 20px;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-width: 1.65;
+.brand-logo {
+  display: block;
+  width: 180px;
+  height: auto;
+  border-radius: 5px;
 }
 
 .topbar-note {

@@ -37,6 +37,18 @@ Open [http://localhost:3000](http://localhost:3000).
 
 The frontend uses `http://localhost:8000` by default. To use a different API URL, set `NEXT_PUBLIC_API_URL` in the frontend environment.
 
+## Install on a phone
+
+The frontend is configured as an installable web app. To install it:
+
+1. Deploy the frontend and API to URLs your phone can reach. The frontend must use HTTPS, and `NEXT_PUBLIC_API_URL` must point to the deployed API.
+2. Keep the API and database running on persistent storage. The app needs the API to load and save habits; offline tracking is not enabled.
+3. Open the deployed HTTPS website on your phone.
+   - On iPhone or iPad, open it in Safari, tap **Share**, then **Add to Home Screen**.
+   - On Android, open it in Chrome, open the menu, then tap **Install app** or **Add to Home screen**.
+
+The local `localhost` development URL is only reachable from the computer running it. It is not the public HTTPS address needed to install and use the app from anywhere.
+
 ## Using Daymark
 
 - Add a habit with the form under the habit list. Use the pencil button to rename it, the up/down arrows to reorder it, or the trash button to delete it.

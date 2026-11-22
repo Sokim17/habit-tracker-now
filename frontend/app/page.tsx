@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties, FormEvent } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -263,13 +264,14 @@ export default function Home() {
     <main className="app-shell">
       <header className="topbar">
         <Link className="brand" href="/" aria-label="Daymark home">
-          <span className="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none">
-              <path d="M16 5v22M5 16h22M8.2 8.2l15.6 15.6m0-15.6L8.2 23.8" />
-              <circle cx="16" cy="16" r="4.25" />
-            </svg>
-          </span>
-          <span>daymark</span>
+          <Image
+            className="brand-logo"
+            src="/daymark-wordmark.png"
+            alt=""
+            width={500}
+            height={130}
+            priority
+          />
         </Link>
         <div className="topbar-note">
           <span className="status-dot" />
